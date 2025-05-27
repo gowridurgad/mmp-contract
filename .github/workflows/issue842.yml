@@ -90,7 +90,7 @@ jobs:
           java-version: '17'
           server-id: github
           server-username: ${{ github.actor }}
-          server-password: ${{ secrets.CUSTOME_TOKEN }}
+          server-password: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Create directory structure
         run: |
