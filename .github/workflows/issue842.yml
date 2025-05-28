@@ -1,13 +1,52 @@
 name: "Production CI"
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 permissions:
   contents: write
   packages: write
 
 jobs:
+  # generate-go-client:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Install Protoc
+  #       uses: arduino/setup-protoc@v3
+
+  #     - name: Installing protoc-gen-go
+  #       run: |
+  #         go install github.com/golang/protobuf/protoc-gen-go@latest
+  #         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+  #         echo "$HOME/go/bin" >> $GITHUB_PATH
+
+  #     - name: Generating protos
+  #       run: |
+  #         mkdir -p build/go
+  #         protoc -I=./contracts/proto --go_out=build/go $(find ./contracts/proto -type f -name '*.proto')
+  #     - name: Upload generated Go client
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: go-client
+  #         path: build/go
+
+  # publish-go-client:
+  #   runs-on: ubuntu-latest
+  #   needs: generate-go-client
+  #   steps:
+  #     - name: Download generated Go client
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: go-client
+  #     - name: Release go pkg
+  #       uses: go-semantic-release/action@v1
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
 
   generate-java-client:
     runs-on: ubuntu-latest
@@ -45,7 +84,23 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-client
-
+      
+      - name: Create settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.PUBLISHER_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
       - name: Setup Java for publishing
         uses: actions/setup-java@v4
         with:
@@ -53,7 +108,8 @@ jobs:
           java-version: '17'
           server-id: github
           server-username: ${{ github.actor }}
-          server-password: ${{ secrets.TOKEN_GITHUB }}
+          server-password: abc
+          overwrite-settings: false
 
       - name: Create directory structure
         run: |
