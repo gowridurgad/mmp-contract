@@ -43,6 +43,9 @@ jobs:
   publish-java-client:
     runs-on: ubuntu-latest
     needs: generate-java-client
+    env:
+      GITHUB_USERNAME: ${{ github.actor }}
+      GITHUB_TOKEN_VALUE: ${{ secrets.TOKEN_GITHUB }}
     steps:
       - name: Download generated Java client
         uses: actions/download-artifact@v4
@@ -55,8 +58,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           server-id: github
-          server-username: ${{ github.actor }}
-          server-password: ${{ secrets.TOKEN_GITHUB }}
+          server-username: GITHUB_USERNAME
+          server-password: GITHUB_TOKEN_VALUE
 
       - name: Create directory structure
         run: |
