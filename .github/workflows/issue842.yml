@@ -92,6 +92,8 @@ jobs:
           EOF
       - name: Tree
         run: tree .
+      - name: Show effective settings.xml
+        run: cat ~/.m2/settings.xml
       
 
       - name: Publish to GitHub Packages
